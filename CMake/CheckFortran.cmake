@@ -12,8 +12,6 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
-message(STATUS "Checking Fortran compiler")
-
 if(NOT DEFINED CMAKE_Fortran_COMPILER)
   set(_desc "Looking for a Fortran compiler")
   message(STATUS ${_desc})

@@ -51,10 +51,7 @@ set (${vtk-module}_HDRS CAdaptorAPI.h)
 
 set (CATALYST_FORTRAN_USING_MANGLING)
 
-include(CheckFortran)
-
-if(CMAKE_Fortran_COMPILER)
-  ENABLE_LANGUAGE(Fortran)
+if (CMAKE_Fortran_COMPILER_WORKS)
   include(FortranCInterface)
   FortranCInterface_HEADER(FortranAdaptorAPIMangling.h
     SYMBOLS

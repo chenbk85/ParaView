@@ -96,7 +96,7 @@ endif()
 #------------------------------------------------------------------------------
 # Adaptors that need Python
 #------------------------------------------------------------------------------
-if (PARAVIEW_ENABLE_PYTHON)
+if (PARAVIEW_ENABLE_PYTHON AND NOT WIN32)
   # Add CTHAdaptor if Python is enabled.
   build_adaptor(CTHAdaptor
                 COMMENT "Building CTH Adaptor"
