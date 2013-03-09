@@ -309,9 +309,20 @@ mark_as_advanced(PARAVIEW_BUILD_CATALYST_ADAPTORS)
 set (Module_vtkPVCatalyst ${PARAVIEW_ENABLE_CATALYST} CACHE BOOL "" FORCE)
 mark_as_advanced(Module_vtkPVCatalyst)
 
-if (PARAVIEW_ENABLE_CATALYST )
+if (PARAVIEW_ENABLE_CATALYST)
   set (Module_vtkPVPythonCatalyst ${PARAVIEW_ENABLE_PYTHON} CACHE BOOL "" FORCE)
   set (Module_vtkPVCatalystTestDriver ${BUILD_TESTING} CACHE BOOL "" FORCE)
+  # When Catalyst is enabled, Fortran is optionally needed. Hence we enable
+  # Fortran at the top level itself. When individual module called
+  # enable_language(...), it failed during first cmake configure but worked o
+  # subsequent. enable_language(... OPTIONAL) overcomes that issue altogether.
+
+  # Theoretically, CheckFortran should not be needed, but it
+  # enable_language(OPTIONAL) fails with Ninja generator.
+  include(CheckFortran)
+  if  (CMAKE_Fortran_COMPILER)
+    enable_language(Fortran OPTIONAL)
+  endif()
 else()
   set (Module_vtkPVPythonCatalyst OFF CACHE BOOL "" FORCE)
   set (Module_vtkPVCatalystTestDriver OFF CACHE BOOL "" FORCE)
@@ -620,8 +631,10 @@ endif()
 
 #-----------------------------------------------------------------------------
 if (PARAVIEW_BUILD_CATALYST_ADAPTORS)
-  # BuildAdaptors.cmake builds the adaptors as a separate project.
-  include(${CMAKE_CURRENT_SOURCE_DIR}/CoProcessing/Adaptors/BuildAdaptors.cmake)
+  # BuildAdaptors.cmake builds the adaptors as a separate project. We mark is
+  # OPTIONAL for Catalyst packages that don't have the adaptors included.
+  include(${CMAKE_CURRENT_SOURCE_DIR}/CoProcessing/Adaptors/BuildAdaptors.cmake
+          OPTIONAL)
 endif()
 
 #-----------------------------------------------------------------------------

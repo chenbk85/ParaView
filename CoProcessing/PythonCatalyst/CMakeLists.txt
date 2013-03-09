@@ -55,8 +55,8 @@ configure_file(vtkCPPythonHelperConfig.h.in
 
 set (${vtk-module}_HDRS CPythonAdaptorAPI.h)
 
-if (CMAKE_Fortran_COMPILER)
-  enable_language(Fortran)
+set (CATALYST_FORTRAN_USING_MANGLING)
+if (CMAKE_Fortran_COMPILER_WORKS)
   include(FortranCInterface)
   FortranCInterface_HEADER(FortranPythonAdaptorAPIMangling.h
     SYMBOLS coprocessorinitializewithpython)
