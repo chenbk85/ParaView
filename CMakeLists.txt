@@ -238,18 +238,6 @@ FIND_PATH(PARAVIEW_DATA_ROOT ParaViewData.readme
   ${ParaView_BINARY_DIR}/../ParaViewData
   $ENV{PARAVIEW_DATA_ROOT})
 
-# CoProcessing related options.
-# I am keeping them as they were, we can propobably minimize these as well.
-option(PARAVIEW_ENABLE_COPROCESSING "Enable/Disable the CoProcessing library." ON)
-cmake_dependent_option(BUILD_FORTRAN_COPROCESSING_ADAPTORS
-  "Build a coprocessing adaptor that can be called from Fortran or C" OFF
-  "PARAVIEW_ENABLE_COPROCESSING" OFF)
-cmake_dependent_option(BUILD_PARTICLE_COPROCESSING_ADAPTORS
-  "Build a coprocessing adaptor that renders particle systems" OFF
-  "PARAVIEW_ENABLE_COPROCESSING" OFF)
-mark_as_advanced(BUILD_PARTICLE_COPROCESSING_ADAPTORS)
-mark_as_advanced(BUILD_FORTRAN_COPROCESSING_ADAPTORS)
-
 if (APPLE)
   # If building on apple, we will set cmake rules for ParaView such that "make
   # install" will result in creation of an application bundle by default.
@@ -311,6 +299,25 @@ option(PARAVIEW_BUILD_WEB_DOCUMENTATION "Enable/Disable web documentation" OFF)
 set(Module_vtkParaViewWebDocumentation ${PARAVIEW_BUILD_WEB_DOCUMENTATION}
   CACHE BOOL "" FORCE)
 mark_as_advanced(Module_vtkParaViewWebDocumentation)
+
+option(PARAVIEW_ENABLE_CATALYST "Enable Catalyst CoProcessing modules" ON)
+cmake_dependent_option(PARAVIEW_BUILD_CATALYST_ADAPTORS
+  "Build Adaptors for various simulation codes" ON
+  "PARAVIEW_ENABLE_CATALYST" OFF)
+mark_as_advanced(PARAVIEW_BUILD_CATALYST_ADAPTORS)
+
+set (Module_vtkPVCatalyst ${PARAVIEW_ENABLE_CATALYST} CACHE BOOL "" FORCE)
+mark_as_advanced(Module_vtkPVCatalyst)
+
+if (PARAVIEW_ENABLE_CATALYST )
+  set (Module_vtkPVPythonCatalyst ${PARAVIEW_ENABLE_PYTHON} CACHE BOOL "" FORCE)
+  set (Module_vtkPVCatalystTestDriver ${BUILD_TESTING} CACHE BOOL "" FORCE)
+else()
+  set (Module_vtkPVPythonCatalyst OFF CACHE BOOL "" FORCE)
+  set (Module_vtkPVCatalystTestDriver OFF CACHE BOOL "" FORCE)
+endif()
+mark_as_advanced(Module_vtkPVPythonCatalyst Module_vtkPVCatalystTestDriver)
+
 #------------------------------------------------------------------------------
 
 
@@ -367,7 +374,6 @@ set (VTK_Group_ParaViewCore ON CACHE BOOL "")
 set (VTK_Group_ParaViewRendering ON CACHE BOOL "")
 set (VTK_Group_ParaViewQt ${PARAVIEW_BUILD_QT_GUI} CACHE BOOL "" FORCE)
 set (VTK_Group_ParaViewPython ${PARAVIEW_ENABLE_PYTHON} CACHE BOOL "" FORCE)
-set (VTK_Group_CoProcessing ${PARAVIEW_ENABLE_COPROCESSING} CACHE BOOL "" FORCE)
 
 #------------------------------------------------------------------------------
 
@@ -449,7 +455,8 @@ list (APPEND PARAVIEW_MODULE_ROOTS
              ThirdParty
              Utilities
              ParaViewCore
-             Qt)
+             Qt
+             CoProcessing)
 
 if (PARAVIEW_ENABLE_WEB)
   list (APPEND PARAVIEW_MODULE_ROOTS
@@ -461,29 +468,12 @@ if (PARAVIEW_BUILD_WEB_DOCUMENTATION)
     Web/Documentation)
 endif()
 
-if (PARAVIEW_ENABLE_COPROCESSING)
-  list (APPEND PARAVIEW_MODULE_ROOTS
-               CoProcessing/Core
-               CoProcessing/CoProcessor)
-endif()
-
-if (BUILD_FORTRAN_COPROCESSING_ADAPTORS)
-  list (APPEND PARAVIEW_MODULE_ROOTS
-               CoProcessing/Adaptors/FortranAdaptors)
-endif()
-
-if (BUILD_PARTICLE_COPROCESSING_ADAPTORS)
-  list (APPEND PARAVIEW_MODULE_ROOTS
-               CoProcessing/Adaptors/ParticleAdaptor)
-endif()
-
 include(ParaViewModuleTop)
 
 #----------------------------------------------------------------------------------
 # keep VTK cmake variables from polluting the non-advanced space.
 mark_as_advanced(
   VTK_EXTRA_COMPILER_WARNINGS
-  VTK_Group_CoProcessing
   VTK_Group_Imaging
   VTK_Group_MPI
   VTK_Group_ParaView
@@ -625,6 +615,13 @@ if (BUILD_EXAMPLES)
   # that examples can be built by themselves as well as avoiding pollution of
   # the ParaView target space with targets (and other things) from examples.
   include(${CMAKE_CURRENT_SOURCE_DIR}/Examples/BuildExamples.cmake)
+endif()
+
+
+#-----------------------------------------------------------------------------
+if (PARAVIEW_BUILD_CATALYST_ADAPTORS)
+  # BuildAdaptors.cmake builds the adaptors as a separate project.
+  include(${CMAKE_CURRENT_SOURCE_DIR}/CoProcessing/Adaptors/BuildAdaptors.cmake)
 endif()
 
 #-----------------------------------------------------------------------------

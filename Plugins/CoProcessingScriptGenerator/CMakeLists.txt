@@ -1,6 +1,5 @@
 project(CoProcessingScriptGeneratorPlugin)
 
-if(PARAVIEW_ENABLE_COPROCESSING)
 #--------------------------------------------------
 # Find and Use ParaView
 #--------------------------------------------------
@@ -89,8 +88,7 @@ ADD_PARAVIEW_PLUGIN(
     ${PARAVIEW_PLUGIN_SRCS2}
     cp_export_py.cxx
 )
-
-target_link_libraries(CoProcessingPlugin vtkCoProcessor)
+target_link_libraries(CoProcessingPlugin vtkPVPythonCatalyst)
 
 IF (BUILD_TESTING)
   include(ParaViewTestingMacros)
@@ -109,5 +107,3 @@ IF (BUILD_TESTING)
     SET_TESTS_PROPERTIES(pv.CoProcessingGUI-static PROPERTIES RUN_SERIAL ON)
   ENDIF ( BUILD_SHARED_LIBS )
 ENDIF (BUILD_TESTING)
-
-endif(PARAVIEW_ENABLE_COPROCESSING)
