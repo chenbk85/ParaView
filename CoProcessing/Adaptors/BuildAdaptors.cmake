@@ -62,7 +62,7 @@ function(build_adaptor name)
                             -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
                             -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                             ${extra_params}
-    COMMAND ${CMAKE_COMMAND} 
+    COMMAND ${CMAKE_COMMAND}
             -E touch "${BINARY_DIR}/${lname}.done"
 
     ${ARGN}
@@ -87,7 +87,7 @@ endif()
 #------------------------------------------------------------------------------
 # Adaptors that need Fortran
 #------------------------------------------------------------------------------
-if (CMAKE_Fortran_COMPILER)
+if (CMAKE_Fortran_COMPILER_WORKS)
   build_adaptor(PhastaAdaptor
                 COMMENT "Building Phasta Adaptor"
                 DEPENDS vtkPVCatalyst)
