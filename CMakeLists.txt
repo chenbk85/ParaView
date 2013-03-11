@@ -554,6 +554,11 @@ if (PARAVIEW_ENABLE_PYTHON)
   add_subdirectory(Utilities/PythonInitializer)
 endif()
 
+if (Module_vtkPVPythonCatalyst)
+  add_subdirectory(CoProcessing/PythonCatalyst
+                   ${CMAKE_CURRENT_BINARY_DIR}/CoProcessing/PythonCatalyst-real)
+endif()
+
 add_subdirectory(CommandLineExecutables)
 add_subdirectory(Applications)
 

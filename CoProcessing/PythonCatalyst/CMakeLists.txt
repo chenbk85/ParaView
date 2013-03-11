@@ -28,6 +28,16 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #==========================================================================
+if (vtk-module)
+  # We don't want this module to be processed as a part of the module-dependency
+  # processing. Hence we skip it.
+  return()
+endif()
+
+set (vtk-module vtkPVPythonCatalyst)
+set (${vtk-module}_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set (${vtk-module}_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+
 set (Module_SRCS
   cp_helper_py.cxx
   CPythonAdaptorAPI.cxx
@@ -72,6 +82,8 @@ if (CMAKE_Fortran_COMPILER_WORKS)
 endif()
 
 vtk_module_library(${vtk-module} ${Module_SRCS})
+target_link_libraries(${vtk-module} vtkUtilitiesPythonInitializer)
+
 if (CATALYST_FORTRAN_USING_MANGLING)
   set_property(TARGET ${vtk-module} APPEND PROPERTY COMPILE_DEFINITIONS
       "CATALYST_FORTRAN_USING_MANGLING=1")

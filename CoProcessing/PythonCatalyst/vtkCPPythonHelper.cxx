@@ -18,24 +18,24 @@
 
 #include "vtkCPPythonHelper.h"
 
+#include "vtkCPPythonHelperConfig.h"
 #include "vtkInitializationHelper.h"
 #include "vtkObjectFactory.h"
 #include "vtkProcessModule.h"
+#include "vtkPVConfig.h"
 #include "vtkPVPythonInterpretor.h"
 #include "vtkPVPythonOptions.h"
 #include "vtkSMObject.h"
 #include "vtkSMProperty.h"
 #include "vtkSMProxyManager.h"
 
-#include "vtkCPPythonHelperConfig.h"
-#include "vtkPVConfig.h"
-
-// FIXME
-// #include "cppythonmodules.h"
-
 #include <string>
 #include <vtksys/SystemTools.hxx>
 #include <vtksys/ios/sstream>
+
+extern "C" {
+  void vtkPVInitializePythonModules();
+}
 
 extern const char* cp_helper_py;
 
@@ -111,10 +111,9 @@ vtkCPPythonHelper* vtkCPPythonHelper::New()
     // works.
     vtkCPPythonHelper::Instance->PythonInterpretor = vtkPVPythonInterpretor::New();
 
-//    FIXME
-//    // register callback to initialize modules statically. The callback is
-//    // empty when BUILD_SHARED_LIBS is ON.
-//    CMakeLoadAllPythonModules();
+    // register callback to initialize modules statically. The callback is
+    // empty when BUILD_SHARED_LIBS is ON.
+    vtkPVInitializePythonModules();
 
     vtkCPPythonHelper::Instance->PythonInterpretor->InitializeSubInterpretor(argc, argv);
     vtkCPPythonHelper::Instance->PythonInterpretor->AddPythonPath(
