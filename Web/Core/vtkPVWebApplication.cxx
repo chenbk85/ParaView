@@ -261,6 +261,73 @@ bool vtkPVWebApplication::HandleInteractionEvent(
   return needs_render;
 }
 
+// ---------------------------------------------------------------------------
+const char* vtkPVWebApplication::GetWebGLSceneMetaData(vtkSMViewProxy* view)
+{
+  if (!view)
+    {
+    vtkErrorMacro("No view specified.");
+    return NULL;
+    }
+  vtkSMRenderViewProxy* rvview = vtkSMRenderViewProxy::SafeDownCast(view);
+  vtkSMContextViewProxy* ctxView = vtkSMContextViewProxy::SafeDownCast(view);
+
+  vtkRenderWindow* renWin = NULL;
+
+  if (rvview)
+    {
+    renWin = rvview->GetRenderWindow();
+    }
+  else if (ctxView)
+    {
+    renWin = ctxView->GetRenderWindow();
+    }
+  else
+    {
+    vtkErrorMacro("The view is supported for WebGL export: " << view);
+    return NULL;
+    }
+/*
+  // We use the camera focal point to be the center of rotation
+  double centerOfRotation[3];
+  vtkRenderer *ren = renWin->GetRenderers()->GetFirstRenderer();
+  vtkCamera *cam = ren->GetActiveCamera();
+  cam->GetFocalPoint(centerOfRotation);
+  this->Internals->WebGLExporter->SetCenterOfRotation(
+                                 static_cast<float>(centerOfRotation[0]),
+                                 static_cast<float>(centerOfRotation[1]),
+                                 static_cast<float>(centerOfRotation[2]));
+*/
+  if(this->Internals->ViewWebGLMap.find(view) ==
+    this->Internals->ViewWebGLMap.end())
+    {
+    this->Internals->ViewWebGLMap[view] =
+      vtkSmartPointer<vtkWebGLExporter>::New();
+    }
+
+  vtkWebGLExporter* webglExporter = this->Internals->ViewWebGLMap[view];
+  webglExporter->parseScene(
+    renWin->GetRenderers(), view->GetGlobalIDAsString(),VTK_PARSEALL);
+
+  vtkInternals::WebGLObjId2IndexMap webglMap;
+  for(int i=0; i<webglExporter->GetNumberOfObjects(); ++i)
+    {
+    vtkWebGLObject* wObj = webglExporter->GetObject(i);
+    if(wObj && wObj->isVisible())
+      {
+      vtkInternals::WebGLObjCacheValue val;
+      val.ObjIndex = i;
+      for(int j=0; j<wObj->GetNumberOfParts(); ++j)
+        {
+        val.BinaryParts[j] = "";
+        }
+      webglMap[wObj->GetId()] = val;
+      }
+    }
+  this->Internals->WebGLExporterObjIdMap[webglExporter] = webglMap;
+  return webglExporter->GenerateMetadata();
+}
+
 //----------------------------------------------------------------------------
 const char* vtkPVWebApplication::GetWebGLBinaryData(
   vtkSMViewProxy* view, const char* id, int part)
@@ -314,39 +381,6 @@ const char* vtkPVWebApplication::GetWebGLBinaryData(
     }
 
   return NULL;
-}
-
-//----------------------------------------------------------------------------
-const char* vtkPVWebApplication::GetWebGLBinaryObjects(vtkSMViewProxy* view)
-{
-  if (!view)
-    {
-    vtkErrorMacro("No view specified.");
-    return NULL;
-    }
-  vtkWebGLExporter* webglExporter = this->Internals->ViewWebGLMap[view];
-  if(webglExporter == NULL)
-    {
-    vtkErrorMacro("There is no cached WebGL Exporter for: " << view);
-    return NULL;
-    }
-
-  this->Internals->LastAllWebGLBinaryObjects = "[";
-  std::string strObj;
-  for(int i=0; i<webglExporter->GetNumberOfObjects(); ++i)
-    {
-    vtkWebGLObject* wObj = webglExporter->GetObject(i);
-    if(wObj && wObj->isVisible())
-      {
-      for(int j=0; j<wObj->GetNumberOfParts(); ++j)
-        {
-        strObj = this->GetWebGLBinaryData(view, wObj->GetId().c_str(), j);
-        this->Internals->LastAllWebGLBinaryObjects += "'" + strObj + "',\n";
-        }
-      }
-    }
-  this->Internals->LastAllWebGLBinaryObjects += "'']";
-  return this->Internals->LastAllWebGLBinaryObjects.c_str();
 }
 
 //----------------------------------------------------------------------------
