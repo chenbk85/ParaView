@@ -550,6 +550,10 @@ pv_process_plugins(
   ${CMAKE_CURRENT_SOURCE_DIR}/Plugins
   ${CMAKE_CURRENT_BINARY_DIR}/Plugins)
 
+if (PARAVIEW_ENABLE_PYTHON)
+  add_subdirectory(Utilities/PythonInitializer)
+endif()
+
 add_subdirectory(CommandLineExecutables)
 add_subdirectory(Applications)
 
