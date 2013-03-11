@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVConfig.h"
 #ifdef PARAVIEW_ENABLE_PYTHON
 extern "C" {
-  vtkPVInitializePythonModules();
+  void vtkPVInitializePythonModules();
 }
 #endif
 
