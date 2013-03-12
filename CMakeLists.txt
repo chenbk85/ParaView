@@ -310,7 +310,6 @@ set (Module_vtkPVCatalyst ${PARAVIEW_ENABLE_CATALYST} CACHE BOOL "" FORCE)
 mark_as_advanced(Module_vtkPVCatalyst)
 
 if (PARAVIEW_ENABLE_CATALYST)
-  set (Module_vtkPVPythonCatalyst ${PARAVIEW_ENABLE_PYTHON} CACHE BOOL "" FORCE)
   set (Module_vtkPVCatalystTestDriver ${BUILD_TESTING} CACHE BOOL "" FORCE)
   # When Catalyst is enabled, Fortran is optionally needed. Hence we enable
   # Fortran at the top level itself. When individual module called
@@ -324,10 +323,9 @@ if (PARAVIEW_ENABLE_CATALYST)
     enable_language(Fortran OPTIONAL)
   endif()
 else()
-  set (Module_vtkPVPythonCatalyst OFF CACHE BOOL "" FORCE)
   set (Module_vtkPVCatalystTestDriver OFF CACHE BOOL "" FORCE)
 endif()
-mark_as_advanced(Module_vtkPVPythonCatalyst Module_vtkPVCatalystTestDriver)
+mark_as_advanced(Module_vtkPVCatalystTestDriver)
 
 #------------------------------------------------------------------------------
 
@@ -467,7 +465,8 @@ list (APPEND PARAVIEW_MODULE_ROOTS
              Utilities
              ParaViewCore
              Qt
-             CoProcessing)
+             CoProcessing/Catalyst
+             CoProcessing/TestDriver)
 
 if (PARAVIEW_ENABLE_WEB)
   list (APPEND PARAVIEW_MODULE_ROOTS
@@ -541,6 +540,24 @@ add_subdirectory(Wrapping/ClientServer)
 add_subdirectory(Wrapping/Python)
 
 #------------------------------------------------------------------------------
+# Process modules that need to be add at the end, after all other modules have
+# been processed.
+if (PARAVIEW_ENABLE_PYTHON)
+  add_subdirectory(Utilities/PythonInitializer)
+endif()
+
+if (PARAVIEW_ENABLE_PYTHON AND PARAVIEW_ENABLE_CATALYST)
+  vtk_add_module(${CMAKE_CURRENT_SOURCE_DIR}/CoProcessing/PythonCatalyst
+                module.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/CoProcessing/PythonCatalyst
+                Cxx
+                Python)
+  set(_module vtkPVPythonCatalyst)
+  set(vtk-module ${_module})
+  add_subdirectory("${${_module}_SOURCE_DIR}" "${${_module}_BINARY_DIR}")
+endif()
+
+#------------------------------------------------------------------------------
 # Process ParaView Plugins. These are processed similar to VTK modules.
 include(ParaViewPluginsMacros)
 # This will set two variables:
@@ -549,15 +566,6 @@ include(ParaViewPluginsMacros)
 pv_process_plugins(
   ${CMAKE_CURRENT_SOURCE_DIR}/Plugins
   ${CMAKE_CURRENT_BINARY_DIR}/Plugins)
-
-if (PARAVIEW_ENABLE_PYTHON)
-  add_subdirectory(Utilities/PythonInitializer)
-endif()
-
-if (Module_vtkPVPythonCatalyst)
-  add_subdirectory(CoProcessing/PythonCatalyst
-                   ${CMAKE_CURRENT_BINARY_DIR}/CoProcessing/PythonCatalyst-real)
-endif()
 
 add_subdirectory(CommandLineExecutables)
 add_subdirectory(Applications)

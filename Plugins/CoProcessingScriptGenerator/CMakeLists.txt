@@ -72,6 +72,9 @@ ADD_CUSTOM_COMMAND(
        "${CMAKE_CURRENT_SOURCE_DIR}/cp_export.py"
        cp_export_py)
 
+vtk_module_load(vtkPVPythonCatalyst)
+include_directories(${vtkPVPythonCatalyst_INCLUDE_DIRS})
+
 ADD_PARAVIEW_PLUGIN(
   CoProcessingPlugin
   #"${CoProcessing_VERSION_MAJOR}.${CoProcessing_VERSION_MINOR}.${CoProcessing_VERSION_PATCH}"
@@ -88,6 +91,8 @@ ADD_PARAVIEW_PLUGIN(
     ${PARAVIEW_PLUGIN_SRCS2}
     cp_export_py.cxx
 )
+
+
 target_link_libraries(CoProcessingPlugin vtkPVPythonCatalyst)
 
 IF (BUILD_TESTING)
